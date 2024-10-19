@@ -1,0 +1,70 @@
+﻿@rendermode InteractiveServer
+@page "/facturas"
+@using Microsoft.EntityFrameworkCore
+@using BlazorMarket.Models
+@inject MarketContext _context
+@inject NavigationManager navigationManager
+
+<h3>Lista de Facturas</h3>
+
+<button class="btn btn-primary" @onclick="NuevaFactura">Nueva Factura</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Número de Factura</th>
+            <th>RUC</th>
+            <th>Razón Social</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var factura in facturas)
+        {
+            <tr>
+                <td>@factura.NumeroFactura</td>
+                <td>@factura.Ruc</td>
+                <td>@factura.RazonSocial</td>
+                <td>@factura.Fecha.ToShortDateString()</td>
+                <td>@factura.Total?.ToString("C")</td> <!-- Formato de moneda -->
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarFactura(factura.NumeroFactura)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarFactura(factura.NumeroFactura)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Factura> facturas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        facturas = await _context.Facturas.ToListAsync();
+    }
+
+    void NuevaFactura()
+    {
+        navigationManager.NavigateTo("/facturaform");
+    }
+
+    void EditarFactura(int numeroFactura)
+    {
+        navigationManager.NavigateTo($"/facturaform/{numeroFactura}");
+    }
+
+    async Task EliminarFactura(int numeroFactura)
+    {
+        var factura = await _context.Facturas.FindAsync(numeroFactura);
+        if (factura != null)
+        {
+            _context.Facturas.Remove(factura);
+            await _context.SaveChangesAsync();
+            facturas = await _context.Facturas.ToListAsync(); // Actualizar la lista después de eliminar
+        }
+    }
+}
+

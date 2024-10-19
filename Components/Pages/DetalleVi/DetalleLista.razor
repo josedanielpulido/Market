@@ -1,0 +1,69 @@
+﻿@rendermode InteractiveServer
+@page "/detalles-factura"
+@using Microsoft.EntityFrameworkCore
+@using BlazorMarket.Models
+@inject MarketContext _context
+@inject NavigationManager navigationManager
+
+<h3>Lista de Detalles de Factura</h3>
+
+<button class="btn btn-primary" @onclick="NuevoDetalle">Nuevo Detalle</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Número de Factura</th>
+            <th>ID de Producto</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var detalle in detallesFactura)
+        {
+            <tr>
+                <td>@detalle.Id</td>
+                <td>@detalle.NumeroFactura</td>
+                <td>@detalle.ProductoId</td>
+                <td>@detalle.Cantidad</td>
+                <td>@detalle.Subtotal.ToString("C")</td> <!-- Formato de moneda -->
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarDetalle(detalle.Id)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarDetalle(detalle.Id)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<DetalleFactura> detallesFactura = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        detallesFactura = await _context.DetalleFacturas.ToListAsync();
+    }
+
+    void NuevoDetalle()
+    {
+        navigationManager.NavigateTo("/detalleform");
+    }
+
+    void EditarDetalle(int id)
+    {
+        navigationManager.NavigateTo($"/detalleform/{id}");
+    }
+
+    async Task EliminarDetalle(int id)
+    {
+        var detalle = await _context.DetalleFacturas.FindAsync(id);
+        if (detalle != null)
+        {
+            _context.DetalleFacturas.Remove(detalle);
+            await _context.SaveChangesAsync();
+            detallesFactura = await _context.DetalleFacturas.ToListAsync(); // Actualizar la lista después de eliminar
+        }
+    }
+}

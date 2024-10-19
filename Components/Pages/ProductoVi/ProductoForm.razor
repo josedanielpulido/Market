@@ -1,0 +1,62 @@
+﻿@rendermode InteractiveServer
+@page "/productoform/{Id:int?}"
+@using BlazorMarket.Models
+@inject MarketContext _context
+@inject NavigationManager navigationManager
+
+<h3>@(Id.HasValue ? "Editar Producto" : "Nuevo Producto")</h3>
+
+<EditForm Model="producto" OnValidSubmit="GuardarProducto">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre:</label>
+        <InputText @bind-Value="producto.Nombre" class="form-control" placeholder="Nombre del producto" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Descripción:</label>
+        <InputText @bind-Value="producto.Descripcion" class="form-control" placeholder="Descripción del producto" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Precio:</label>
+        <InputNumber @bind-Value="producto.Precio" class="form-control" placeholder="Precio del producto" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    private Producto producto = new Producto();
+    [Parameter] public int? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            producto = await _context.Productos.FindAsync(Id.Value);
+        }
+    }
+
+    async Task GuardarProducto()
+    {
+        if (Id.HasValue)
+        {
+            _context.Productos.Update(producto);
+        }
+        else
+        {
+            _context.Productos.Add(producto);
+        }
+        await _context.SaveChangesAsync();
+        navigationManager.NavigateTo("/productos");
+    }
+
+    void Cancelar()
+    {
+        navigationManager.NavigateTo("/productos");
+    }
+}

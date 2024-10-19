@@ -1,0 +1,67 @@
+﻿@rendermode InteractiveServer
+@page "/detalleform/{id:int?}"
+@using BlazorMarket.Models
+@inject MarketContext _context
+@inject NavigationManager navigationManager
+
+<h3>@(id.HasValue ? "Editar Detalle de Factura" : "Nuevo Detalle de Factura")</h3>
+
+<EditForm Model="detalleFactura" OnValidSubmit="GuardarDetalle">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Número de Factura:</label>
+        <InputNumber @bind-Value="detalleFactura.NumeroFactura" class="form-control" placeholder="Número de factura" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ID de Producto:</label>
+        <InputNumber @bind-Value="detalleFactura.ProductoId" class="form-control" placeholder="ID del producto" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Cantidad:</label>
+        <InputNumber @bind-Value="detalleFactura.Cantidad" class="form-control" placeholder="Cantidad" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Subtotal:</label>
+        <InputNumber @bind-Value="detalleFactura.Subtotal" class="form-control" placeholder="Subtotal" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    private DetalleFactura detalleFactura = new DetalleFactura();
+    [Parameter] public int? id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            detalleFactura = await _context.DetalleFacturas.FindAsync(id.Value);
+        }
+    }
+
+    async Task GuardarDetalle()
+    {
+        if (id.HasValue)
+        {
+            _context.DetalleFacturas.Update(detalleFactura);
+        }
+        else
+        {
+            _context.DetalleFacturas.Add(detalleFactura);
+        }
+        await _context.SaveChangesAsync();
+        navigationManager.NavigateTo("/detalles-factura");
+    }
+
+    void Cancelar()
+    {
+        navigationManager.NavigateTo("/detalles-factura");
+    }
+}

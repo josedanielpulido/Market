@@ -1,0 +1,65 @@
+﻿@rendermode InteractiveServer
+@page "/productos"
+@using Microsoft.EntityFrameworkCore
+@using BlazorMarket.Models
+@inject MarketContext _context
+@inject NavigationManager navigationManager
+
+<h3>Lista de Productos</h3>
+
+<button class="btn btn-primary" @onclick="NuevoProducto">Nuevo Producto</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var producto in productos)
+        {
+            <tr>
+                <td>@producto.Nombre</td>
+                <td>@producto.Descripcion</td>
+                <td>@producto.Precio</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarProducto(producto.Id)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarProducto(producto.Id)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Producto> productos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await _context.Productos.ToListAsync();
+    }
+
+    void NuevoProducto()
+    {
+        navigationManager.NavigateTo("/productoform");
+    }
+
+    void EditarProducto(int id)
+    {
+        navigationManager.NavigateTo($"/productoform/{id}");
+    }
+
+    async Task EliminarProducto(int id)
+    {
+        var producto = await _context.Productos.FindAsync(id);
+        if (producto != null)
+        {
+            _context.Productos.Remove(producto);
+            await _context.SaveChangesAsync();
+            productos = await _context.Productos.ToListAsync();
+        }
+    }
+}
